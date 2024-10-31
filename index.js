@@ -56,6 +56,8 @@ app.post("/api/registerUser/", async function (req, res) {
             dateOfBirth,
             sex,
             stakeholder,
+            specialization,
+
             docType,
         } = req.body.params;
         const result = await contract.evaluateTransaction("queryAllData");
@@ -86,7 +88,7 @@ app.post("/api/registerUser/", async function (req, res) {
                 phone: phone,
                 dateOfBirth:dateOfBirth,
                 sex:sex,
-               
+               specialization:specialization,
 
 
             };
@@ -100,6 +102,7 @@ phone,
 dateOfBirth,
 sex,
 stakeholder,
+specialization
 
             );
 
@@ -210,77 +213,78 @@ app.post("/api/login", async function (req, res) {
     }
 });
 
-app.post("/api/createEMR", async function (req, res) {
-    try {
-        const ccpPath = path.resolve(
-            __dirname,
-            "..",
-            "..",
-            "test-network",
-            "organizations",
-            "peerOrganizations",
-            "org1.example.com",
-            "connection-org1.json"
-        );
-        const ccp = JSON.parse(fs.readFileSync(ccpPath, "utf8"));
-        // Create a new file system based wallet for managing identities.
-        const walletPath = path.join(process.cwd(), "wallet");
-        const wallet = await Wallets.newFileSystemWallet(walletPath);
-        console.log(`Wallet path: ${walletPath}`);
 
-        // Check to see if we've already enrolled the user.
-        const identity = await wallet.get("appUser");
-        if (!identity) {
-            console.log(
-                'An identity for the user "appUser " does not exist in the wallet'
-            );
-            console.log("Run the registerUser .js application before retrying");
-            return;
-        }
-        // Create a new gateway for connecting to our peer node.
-        const gateway = new Gateway();
-        await gateway.connect(ccp, {
-            wallet,
-            identity: "appUser",
-            discovery: { enabled: true, asLocalhost: true },
-        });
 
-        // Get the network (channel) our contract is deployed to.
-        const network = await gateway.getNetwork("mychannel");
+// app.post("/api/createEMR", async function (req, res) {
+//     try {
+//         const ccpPath = path.resolve(
+//             __dirname,
+//             "..",
+//             "..",
+//             "test-network",
+//             "organizations",
+//             "peerOrganizations",
+//             "org1.example.com",
+//             "connection-org1.json"
+//         );
+//         const ccp = JSON.parse(fs.readFileSync(ccpPath, "utf8"));
+//         const walletPath = path.join(process.cwd(), "wallet");
+//         const wallet = await Wallets.newFileSystemWallet(walletPath);
+//         console.log(`Wallet path: ${walletPath}`);
 
-        // Get the contract from the network.
-        const contract = network.getContract("fabcar");
+//         const identity = await wallet.get("appUser");
+//         if (!identity) {
+//             console.log(
+//                 'An identity for the user "appUser " does not exist in the wallet'
+//             );
+//             console.log("Run the registerUser .js application before retrying");
+//             return;
+//         }
 
-        // console.log(req.body);
-        // Submit the specified transaction.
-        // createCar transaction - requires 5 argument, ex: ('createCar', 'CAR12', 'Honda', 'Accord', 'Black', 'Tom')
-        // changeCarOwner transaction - requires 2 args , ex: ('changeCarOwner', 'CAR10', 'Dave')
-        const result = await contract.evaluateTransaction("queryAllData");
-        let aaryData = JSON.parse(result);
-        // console.log(req.body);
-        // console.log(aaryData);
+//         const gateway = new Gateway();
+//         await gateway.connect(ccp, {
+//             wallet,
+//             identity: "appUser",
+//             discovery: { enabled: true, asLocalhost: true },
+//         });
 
-        // var responseData = aaryData.filter(data => data.emrData.id == req.body.id );
-        // console.log(responseData.length);
-        // if (responseData.length <= 0) {
+//         const network = await gateway.getNetwork("mychannel");
+//         const contract = network.getContract("fabcar");
 
-        //     await contract.submitTransaction('createEMR',  req.body.id,req.body.emrData);
-        //     // console.log('Transaction has been submitted');
-        //     res.status(200).send('Transaction has been submitted');
-        // } else {
-        //     res.status(400).send('EMR already exists');
+//         console.log(req.body);
+//         const {
+//             id,
+//             patientInformation,
+//             medicalHistory,
+//             vitalSigns,
+//             chiefComplaint,
+//             physicalExamination,
+//             diagnosticTests,
+//             assessmentAndPlan,
+//             progressNotes
+//         } = req.body.params;
 
-        // }
-        await contract.submitTransaction("createEMR", req.body.id, req.body);
-        res.status(200).send("Transaction has been submitted");
 
-        // Disconnect from the gateway.
-        await gateway.disconnect();
-    } catch (error) {
-        console.error(`Failed to submit transaction: ${error}`);
-        process.exit(1);
-    }
-});
+//         await contract.submitTransaction("createEMR", id,
+//             patientInformation,
+//             medicalHistory,
+//             vitalSigns,
+//             chiefComplaint,
+//             physicalExamination,
+//             diagnosticTests,
+//             assessmentAndPlan,
+//             progressNotes,
+         
+//         );
+
+//         res.status(200).send("Transaction has been submitted");
+
+//         await gateway.disconnect();
+//     } catch (error) {
+//         console.error(`Failed to submit transaction: ${error}`);
+//         res.status(500).send(`Failed to submit transaction: ${error.message}`);
+//     }
+// });
 
 // app.get('/api/getemr/:id', async function (req, res) {
 //     try {
@@ -321,6 +325,78 @@ app.post("/api/createEMR", async function (req, res) {
 //         res.status(500).json({ error: error.message });
 //     }
 // });
+
+
+app.post("/api/createEMR", async function (req, res) {
+    try {
+        const ccpPath = path.resolve(
+            __dirname,
+            "..",
+            "..",
+            "test-network",
+            "organizations",
+            "peerOrganizations",
+            "org1.example.com",
+            "connection-org1.json"
+        );
+        const ccp = JSON.parse(fs.readFileSync(ccpPath, "utf8"));
+        const walletPath = path.join(process.cwd(), "wallet");
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
+        console.log(`Wallet path: ${walletPath}`);
+
+        const identity = await wallet.get("appUser");
+        if (!identity) {
+            console.log(
+                'An identity for the user "appUser " does not exist in the wallet'
+            );
+            console.log("Run the registerUser  .js application before retrying");
+            return;
+        }
+
+        const gateway = new Gateway();
+        await gateway.connect(ccp, {
+            wallet,
+            identity: "appUser",
+            discovery: { enabled: true, asLocalhost: true },
+        });
+
+        const network = await gateway.getNetwork("mychannel");
+        const contract = network.getContract("fabcar");
+
+        console.log(req.body);
+        const {
+            id,
+            patientInformation,
+            medicalHistory,
+            vitalSigns,
+            chiefComplaint,
+            physicalExamination,
+            diagnosticTests,
+            assessmentAndPlan,
+            progressNotes
+        } = req.body.params;
+
+        // Create the EMR object
+      
+
+        // Store the EMR object in the ledger
+        await contract.submitTransaction("createEMR", id, JSON.stringify(patientInformation),
+    JSON.stringify(medicalHistory),
+    JSON.stringify(vitalSigns),
+    JSON.stringify(chiefComplaint),
+    JSON.stringify(physicalExamination),
+    JSON.stringify(diagnosticTests),
+    JSON.stringify(assessmentAndPlan),
+    JSON.stringify(progressNotes));
+
+        res.status(200).send("Transaction has been submitted");
+
+        await gateway.disconnect();
+    } catch (error) {
+        console.error(`Failed to submit transaction: ${error}`);
+        res.status(500).send(`Failed to submit transaction: ${error.message}`);
+    }
+});
 
 app.get("/api/getallemr", async function (req, res) {
     try {
@@ -366,7 +442,7 @@ app.get("/api/getallemr", async function (req, res) {
         const contract = network.getContract("fabcar");
 
         // Retrieve all EMR data
-        const result = await contract.evaluateTransaction("queryAllData"); // Assuming 'queryAllData' retrieves all records
+        const result = await contract.evaluateTransaction("queryEmrData"); // Assuming 'queryAllData' retrieves all records
         const allData = JSON.parse(result.toString());
         // console.log(allData[0].Record.docType);
         // Filter the data for docType = "EMR"
@@ -374,9 +450,7 @@ app.get("/api/getallemr", async function (req, res) {
             (record) => record.Record.docType === "EMR"
         );
 
-        console.log(
-            `Transaction has been evaluated, found ${emrData.length} EMR records.`
-        );
+      
         res.status(200).json({ response: emrData }); // Return the filtered EMR records
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);
