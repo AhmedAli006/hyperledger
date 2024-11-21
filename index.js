@@ -34,7 +34,7 @@ app.post("/api/registerUser/", async function (req, res) {
             console.log(
                 'An identity for the user "appUser" does not exist in the wallet'
             );
-            console.log("Run the registerUser.js application before retrying");
+            console.log("Run the registerUser .js application before retrying");
             return;
         }
 
@@ -51,68 +51,71 @@ app.post("/api/registerUser/", async function (req, res) {
             id,
             name,
             email,
-            password,
+            stakeholder,
             phone,
             dateOfBirth,
             sex,
-            stakeholder,
             specialization,
-
-            docType,
+            password,
         } = req.body.params;
+
         const result = await contract.evaluateTransaction("queryAllData");
         let aaryData = JSON.parse(result);
 
         console.log("req.body.params", req.body.params);
-        console.log("aaryData ", aaryData);
+        console.log("aaryData", aaryData);
 
-        var responseData = aaryData.filter(
-            (data) => data.Record.email == email
+        const responseData = aaryData.filter(
+            (data) => data.Record.email === email
         );
         console.log(responseData.length);
 
-
         if (responseData.length <= 0) {
             // Hash the password
-            const hashedPassword = await bcrypt.hash(
-                password,
-                10
-            );
-
-            // Submit the transaction to create a new user
-            const userInfo = {
-                id: id,
-                name: name,
-                email: email,
-                stakeholder: stakeholder,
-                phone: phone,
-                dateOfBirth:dateOfBirth,
-                sex:sex,
-               specialization:specialization,
-
-
+            const hashedPassword = await bcrypt.hash(password, 10);
+             const userInfo = {
+                id,
+                name,
+                email,
+                stakeholder,
+                phone,
+                dateOfBirth,
+                sex,
+                specialization,
+                password: hashedPassword, // You may choose to omit this
+                docType: "User ",
             };
-            await contract.submitTransaction(
-                "createUserObj",
-               id,
-name,
-email,
-hashedPassword,
-phone,
-dateOfBirth,
-sex,
-stakeholder,
-specialization
 
+                      await contract.submitTransaction(
+                "createUserObj",
+                id,
+                name,
+                email,
+                hashedPassword,
+                stakeholder,
+                dateOfBirth,
+                sex,
+                phone,
+                specialization
             );
 
-             // Remove the hashed password before sending the response
-           
+            // Create a response object with a specific order
+            const userResponse = {
+                id: userInfo.id,
+                name: userInfo.name,
+                email: userInfo.email,
+                stakeholder: userInfo.stakeholder,
+                phone: userInfo.phone,
+                dateOfBirth: userInfo.dateOfBirth,
+                sex: userInfo.sex,
+                specialization: userInfo.specialization,
+                // Do not include the password in the response
+            };
 
-            // Send the user info back in the response
+           
             res.status(200).json({
                 message: "Transaction has been submitted",
-                response: userInfo,
+                response: userResponse,
             });
         } else {
             res.status(400).send("User already exists");
@@ -153,7 +156,7 @@ app.post("/api/login", async function (req, res) {
 
         const walletPath = path.join(process.cwd(), "wallet");
         const wallet = await Wallets.newFileSystemWallet(walletPath);
-        console.log(`Wallet path: ${walletPath}`);
+      
 
         const identity = await wallet.get("appUser");
         if (!identity) {
@@ -213,8 +216,6 @@ app.post("/api/login", async function (req, res) {
     }
 });
 
-
-
 // app.post("/api/createEMR", async function (req, res) {
 //     try {
 //         const ccpPath = path.resolve(
@@ -264,7 +265,6 @@ app.post("/api/login", async function (req, res) {
 //             progressNotes
 //         } = req.body.params;
 
-
 //         await contract.submitTransaction("createEMR", id,
 //             patientInformation,
 //             medicalHistory,
@@ -274,7 +274,7 @@ app.post("/api/login", async function (req, res) {
 //             diagnosticTests,
 //             assessmentAndPlan,
 //             progressNotes,
-         
+
 //         );
 
 //         res.status(200).send("Transaction has been submitted");
@@ -326,7 +326,6 @@ app.post("/api/login", async function (req, res) {
 //     }
 // });
 
-
 app.post("/api/createEMR", async function (req, res) {
     try {
         const ccpPath = path.resolve(
@@ -349,7 +348,9 @@ app.post("/api/createEMR", async function (req, res) {
             console.log(
                 'An identity for the user "appUser " does not exist in the wallet'
             );
-            console.log("Run the registerUser  .js application before retrying");
+            console.log(
+                "Run the registerUser  .js application before retrying"
+            );
             return;
         }
 
@@ -373,21 +374,26 @@ app.post("/api/createEMR", async function (req, res) {
             physicalExamination,
             diagnosticTests,
             assessmentAndPlan,
-            progressNotes
+            progressNotes,
+            doctor,
         } = req.body.params;
 
         // Create the EMR object
-      
 
         // Store the EMR object in the ledger
-        await contract.submitTransaction("createEMR", id, JSON.stringify(patientInformation),
-    JSON.stringify(medicalHistory),
-    JSON.stringify(vitalSigns),
-    JSON.stringify(chiefComplaint),
-    JSON.stringify(physicalExamination),
-    JSON.stringify(diagnosticTests),
-    JSON.stringify(assessmentAndPlan),
-    JSON.stringify(progressNotes));
+        await contract.submitTransaction(
+            "createEMR",
+            id,
+            JSON.stringify(patientInformation),
+            JSON.stringify(medicalHistory),
+            JSON.stringify(vitalSigns),
+            JSON.stringify(chiefComplaint),
+            JSON.stringify(physicalExamination),
+            JSON.stringify(diagnosticTests),
+            JSON.stringify(assessmentAndPlan),
+            JSON.stringify(progressNotes),
+            JSON.stringify(doctor)
+        );
 
         res.status(200).send("Transaction has been submitted");
 
@@ -450,7 +456,6 @@ app.get("/api/getallemr", async function (req, res) {
             (record) => record.Record.docType === "EMR"
         );
 
-      
         res.status(200).json({ response: emrData }); // Return the filtered EMR records
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);
@@ -472,6 +477,7 @@ app.get("/api/getusers", async function (req, res) {
         );
         const ccp = JSON.parse(fs.readFileSync(ccpPath, "utf8"));
         // Create a new file system based wallet for managing identities.
+        console.log(ccp);
         const walletPath = path.join(process.cwd(), "wallet");
         const wallet = await Wallets.newFileSystemWallet(walletPath);
         console.log(`Wallet path: ${walletPath}`);
@@ -651,7 +657,7 @@ app.put("/api/changeowner/:car_index", async function (req, res) {
         // Create a new file system based wallet for managing identities.
         const walletPath = path.join(process.cwd(), "wallet");
         const wallet = await Wallets.newFileSystemWallet(walletPath);
-        console.log(`Wallet path: ${walletPath}`);
+        // console.log(`Wallet path: ${walletPath}`);
 
         // Check to see if we've already enrolled the user.
         const identity = await wallet.get("appUser");
@@ -693,6 +699,6 @@ app.put("/api/changeowner/:car_index", async function (req, res) {
     }
 });
 
-app.listen(8080, () => {
-    console.log("server running 8080");
+app.listen(5000, () => {
+    console.log("server running 5000");
 });
