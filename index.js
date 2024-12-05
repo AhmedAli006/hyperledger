@@ -57,6 +57,7 @@ app.post("/api/registerUser/", async function (req, res) {
             sex,
             specialization,
             password,
+            
         } = req.body.params;
 
         const result = await contract.evaluateTransaction("queryAllData");
@@ -82,8 +83,10 @@ app.post("/api/registerUser/", async function (req, res) {
                 dateOfBirth,
                 sex,
                 specialization,
+
                 password: hashedPassword, // You may choose to omit this
-                docType: "User ",
+            status: "pending",
+                docType: "User",
             };
 
                       await contract.submitTransaction(
@@ -109,6 +112,8 @@ app.post("/api/registerUser/", async function (req, res) {
                 dateOfBirth: userInfo.dateOfBirth,
                 sex: userInfo.sex,
                 specialization: userInfo.specialization,
+           
+
                 // Do not include the password in the response
             };
 
@@ -641,7 +646,7 @@ app.post("/api/addcar/", async function (req, res) {
     }
 });
 
-app.put("/api/changeowner/:car_index", async function (req, res) {
+app.put("/api/updateUser/:userId", async function (req, res) {
     try {
         const ccpPath = path.resolve(
             __dirname,
@@ -686,10 +691,11 @@ app.put("/api/changeowner/:car_index", async function (req, res) {
         // changeCarOwner transaction - requires 2 args , ex: ('changeCarOwner', 'CAR10', 'Dave')
         await contract.submitTransaction(
             "changeCarOwner",
-            req.params.car_index,
-            req.body.owner
+            req.body.userId,
+            req.body.status
         );
         console.log("Transaction has been submitted");
+        console.log(req.body);
         res.send("Transaction has been submitted");
         // Disconnect from the gateway.
         await gateway.disconnect();
@@ -699,6 +705,6 @@ app.put("/api/changeowner/:car_index", async function (req, res) {
     }
 });
 
-app.listen(5000, () => {
-    console.log("server running 5000");
+app.listen(5050, () => {
+    console.log("server running 5050");
 });
