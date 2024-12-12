@@ -691,11 +691,11 @@ app.put("/api/updateUser/:userId", async function (req, res) {
         // changeCarOwner transaction - requires 2 args , ex: ('changeCarOwner', 'CAR10', 'Dave')
         await contract.submitTransaction(
             "changeCarOwner",
-            req.body.userId,
-            req.body.status
+            req.body.id,
+            req.body.action
         );
         console.log("Transaction has been submitted");
-        console.log(req.body);
+       
         res.send("Transaction has been submitted");
         // Disconnect from the gateway.
         await gateway.disconnect();
