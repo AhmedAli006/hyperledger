@@ -112,6 +112,7 @@ app.post("/api/registerUser/", async function (req, res) {
                 dateOfBirth: userInfo.dateOfBirth,
                 sex: userInfo.sex,
                 specialization: userInfo.specialization,
+                status: userInfo.status,
            
 
                 // Do not include the password in the response
@@ -138,8 +139,7 @@ app.post("/api/login", async function (req, res) {
     try {
         var email = req.body.params.email;
         var password = req.body.params.password;
-        console.log(req.body.params);
-
+       
         if (!email || !password) {
             console.log("Please enter your details!");
             return res
@@ -205,19 +205,17 @@ app.post("/api/login", async function (req, res) {
                 user.statusMessage = "Success Login";
                 console.log("success");
                 return res.status(200).json({ response: user });
-            } else {
-                console.log("Credentials not verified!");
-                return res
-                    .status(200)
-                    .json({ error: "Credentials not verified!" });
+             } else {
+                console.log("Invalid credentials!");
+                return res.status(401).json({ error: "Invalid credentials!" }); // Use 401 Unauthorized for invalid credentials
             }
         } else {
             console.log("User  not found!");
-            return res.status(200).json({ error: "User  not found!" });
+            return res.status(404).json({ error: "User not found!" }); // Use 404 Not Found if user does not exist
         }
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);
-        return res.status(500).json({ error: error.message });
+        return res.status(500).json({ error: "Internal server error" }); // Use 500 Internal Server Error for unexpected errors
     }
 });
 
@@ -585,66 +583,7 @@ app.get("/api/query/:car_index", async function (req, res) {
     }
 });
 
-app.post("/api/addcar/", async function (req, res) {
-    try {
-        const ccpPath = path.resolve(
-            __dirname,
-            "..",
-            "..",
-            "test-network",
-            "organizations",
-            "peerOrganizations",
-            "org1.example.com",
-            "connection-org1.json"
-        );
-        const ccp = JSON.parse(fs.readFileSync(ccpPath, "utf8"));
-        // Create a new file system based wallet for managing identities.
-        const walletPath = path.join(process.cwd(), "wallet");
-        const wallet = await Wallets.newFileSystemWallet(walletPath);
-        console.log(`Wallet path: ${walletPath}`);
 
-        // Check to see if we've already enrolled the user.
-        const identity = await wallet.get("appUser");
-        if (!identity) {
-            console.log(
-                'An identity for the user "appUser" does not exist in the wallet'
-            );
-            console.log("Run the registerUser.js application before retrying");
-            return;
-        }
-        // Create a new gateway for connecting to our peer node.
-        const gateway = new Gateway();
-        await gateway.connect(ccp, {
-            wallet,
-            identity: "appUser",
-            discovery: { enabled: true, asLocalhost: true },
-        });
-
-        // Get the network (channel) our contract is deployed to.
-        const network = await gateway.getNetwork("mychannel");
-
-        // Get the contract from the network.
-        const contract = network.getContract("fabcar");
-        // Submit the specified transaction.
-        // createCar transaction - requires 5 argument, ex: ('createCar', 'CAR12', 'Honda', 'Accord', 'Black', 'Tom')
-        // changeCarOwner transaction - requires 2 args , ex: ('changeCarOwner', 'CAR10', 'Dave')
-        await contract.submitTransaction(
-            "createCar",
-            req.body.carid,
-            req.body.make,
-            req.body.model,
-            req.body.colour,
-            req.body.owner
-        );
-        console.log("Transaction has been submitted");
-        res.send("Transaction has been submitted");
-        // Disconnect from the gateway.
-        await gateway.disconnect();
-    } catch (error) {
-        console.error(`Failed to submit transaction: ${error}`);
-        process.exit(1);
-    }
-});
 
 app.put("/api/updateUser/:userId", async function (req, res) {
     try {
